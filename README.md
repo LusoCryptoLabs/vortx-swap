@@ -1,4 +1,4 @@
-# Vortx Swap (CellSwap)
+# Vortx Swap (Greatest dex in the world on CKB)
 
 An intent-based AMM DEX on Nervos CKB. Users keep custody of their assets: every trade is
 authorized by the user's own lock, including a secp256r1/WebAuthn lock for JoyID passkeys. Batched
