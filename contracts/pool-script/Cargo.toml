@@ -1,0 +1,20 @@
+[package]
+license = "MIT"
+name = "pool-script"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ckb-std     = { workspace = true }
+ethnum      = { workspace = true }
+amm-math    = { workspace = true }
+cell-utils  = { workspace = true }
+blake2b-ref = { workspace = true }
+
+[build-dependencies]
+# host-side: derive FACTORY_CODE_HASH from the staged factory-script binary (see build.rs).
+blake2b-ref = "0.3"
+
+[[bin]]
+name = "pool-script"
+path = "src/main.rs"

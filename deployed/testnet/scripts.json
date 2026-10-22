@@ -1,0 +1,21 @@
+{
+  "devnet": {},
+  "testnet": {
+    "vtx-sink-lock": {
+      "codeHash": "0xe91840b8197f0364750658a64412275b9f1b41656bb4b9d2542566b04054201b",
+      "hashType": "type",
+      "cellDeps": [
+        {
+          "cellDep": {
+            "outPoint": {
+              "txHash": "0x32aca73c0ea286d292efb62679d0efec2f51c23ce54f1ab1ea61f492e4667426",
+              "index": 0
+            },
+            "depType": "code"
+          }
+        }
+      ]
+    }
+  },
+  "mainnet": {}
+}

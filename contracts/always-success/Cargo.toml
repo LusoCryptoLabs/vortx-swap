@@ -1,0 +1,12 @@
+[package]
+license = "MIT"
+name = "always-success"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ckb-std = { workspace = true }
+
+[[bin]]
+name = "always-success"
+path = "src/main.rs"

@@ -1,0 +1,16 @@
+[package]
+license = "MIT"
+name = "factory-script"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ckb-std     = { workspace = true }
+ethnum      = { workspace = true }
+amm-math    = { workspace = true }
+cell-utils  = { workspace = true }
+blake2b-ref = { workspace = true }
+
+[[bin]]
+name = "factory-script"
+path = "src/main.rs"

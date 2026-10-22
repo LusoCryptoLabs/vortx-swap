@@ -1,0 +1,106 @@
+/* cellswap_types.mol
+   Run: moleculec --language rust --schema-file schemas/cellswap_types.mol > shared/molecule-types/src/generated.rs
+*/
+
+import blockchain;
+
+array Uint16  [byte; 2];
+array Uint64  [byte; 8];
+array Uint128 [byte; 16];
+
+/* ── Pool ──────────────────────────────────────────────────────────────── */
+
+/* pool_mode: 0x00 = xUDT/xUDT, 0x01 = CKB/xUDT (token_y only, CKB reserve = capacity - MIN_CAPACITY) */
+struct PoolData {
+    token_x_type_hash:  Byte32,    /* zero-filled if CKB native (pool_mode=0x01) */
+    token_y_type_hash:  Byte32,
+    reserve_x:          Uint128,   /* if CKB native: tracked separately, verified against capacity delta */
+    reserve_y:          Uint128,
+    fee_bps:            Uint16,
+    lp_supply:          Uint128,
+    pool_id:            Uint128,
+    cumulative_price_x: Uint128,
+    cumulative_price_y: Uint128,
+    last_update_epoch:  Uint64,
+    pool_mode:          byte,      /* 0x00=xUDT/xUDT, 0x01=CKB/xUDT */
+    paused:             byte,
+}
+
+/* ── Intent Lock Args (74 bytes after owner_lock_hash) ─────────────────── */
+/* Not a molecule type: packed directly into lock script args.
+   Layout: owner_lock_hash(32) || min_amount_out(16) || token_out_type_hash(32) ||
+           deadline_epoch(8) || pool_type_hash_prefix(16) || solver_fee_bps(2) = 106 total */
+
+/* ── Factory ───────────────────────────────────────────────────────────── */
+
+table PoolEntry {
+    pool_id:           Uint128,
+    token_x_type_hash: Byte32,
+    token_y_type_hash: Byte32,
+    fee_bps:           Uint16,
+    pool_mode:         byte,
+}
+
+vector PoolEntries <PoolEntry>;
+
+table FactoryData {
+    next_pool_id:    Uint128,
+    pool_script_hash: Byte32,
+    pools:           PoolEntries,
+    pause_authority: Byte32,
+    global_paused:   byte,
+}
+
+/* ── LP Token: xUDT-compatible, args = pool_id(16) || pool_type_hash(32) ── */
+
+/* ── Cobuild OTX ───────────────────────────────────────────────────────── */
+
+table LimitOrder {
+    bid_token:  Byte32,
+    bid_amount: Uint128,
+    ask_token:  Byte32,
+    ask_amount: Uint128,
+}
+
+table MarketOrder {
+    bid_token:   Byte32,
+    bid_amount:  Uint128,
+    ask_token:   Byte32,
+    min_receive: Uint128,
+}
+
+table LimitOrderWithDeadline {
+    bid_token:  Byte32,
+    bid_amount: Uint128,
+    ask_token:  Byte32,
+    ask_amount: Uint128,
+    deadline:   Uint64,
+}
+
+union Order {
+    LimitOrder,
+    MarketOrder,
+    LimitOrderWithDeadline,
+}
+
+vector Orders <Order>;
+
+table CellSwapAction {
+    orders: Orders,
+}
+
+/* ── Token Registry ────────────────────────────────────────────────────── */
+
+table TokenInfo {
+    type_hash: Byte32,
+    symbol:    Bytes,
+    name:      Bytes,
+    decimals:  byte,
+    logo_url:  Bytes,
+}
+
+vector TokenInfos <TokenInfo>;
+table TokenRegistry {
+    tokens:          TokenInfos,
+    admin_lock_hash: Byte32,
+}

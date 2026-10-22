@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2022", "DOM"],
+    "strict": true,
+    // Disabled: @ckb-ccc/core 1.x's own types (e.g. Transaction vs TransactionLike,
+    // CellOutput's optional `type`) don't satisfy exactOptionalPropertyTypes, so it's
+    // impossible to satisfy when consuming CCC 1.x. Genuine undefined handling is still
+    // covered by `strict` + noUncheckedIndexedAccess.
+    "exactOptionalPropertyTypes": false,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "exclude": ["node_modules", "**/dist/**", "**/build/**"]
+}

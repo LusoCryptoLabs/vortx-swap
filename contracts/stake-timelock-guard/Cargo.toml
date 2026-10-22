@@ -1,0 +1,12 @@
+[package]
+license = "MIT"
+name = "stake-timelock-guard"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ckb-std = { workspace = true, features = ["ckb-types"] }
+
+[[bin]]
+name = "stake-timelock-guard"
+path = "src/main.rs"

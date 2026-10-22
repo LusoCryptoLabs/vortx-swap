@@ -1,0 +1,13 @@
+[package]
+license = "MIT"
+name = "intent-lock"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ckb-std    = { workspace = true, features = ["ckb-types"] }
+cell-utils = { workspace = true }
+
+[[bin]]
+name = "intent-lock"
+path = "src/main.rs"

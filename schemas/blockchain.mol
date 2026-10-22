@@ -1,0 +1,7 @@
+/* blockchain.mol: minimal stand-in for the canonical CKB schema.
+   cellswap_types.mol only imports Byte32 and Bytes from it; the Uint* arrays it needs
+   are defined locally there, so we deliberately omit Uint64/Uint128 here to avoid a
+   duplicate-type clash. Definitions are byte-identical to the canonical blockchain.mol. */
+
+array Byte32 [byte; 32];
+vector Bytes <byte>;

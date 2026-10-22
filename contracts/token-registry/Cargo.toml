@@ -1,0 +1,13 @@
+[package]
+license = "MIT"
+name = "token-registry"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ckb-std = { workspace = true, features = ["ckb-types"] }
+blake2b-ref = { workspace = true }
+
+[[bin]]
+name = "token-registry"
+path = "src/main.rs"

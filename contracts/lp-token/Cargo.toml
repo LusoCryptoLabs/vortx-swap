@@ -1,0 +1,13 @@
+[package]
+license = "MIT"
+name = "lp-token"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ckb-std    = { workspace = true }
+cell-utils = { workspace = true }
+
+[[bin]]
+name = "lp-token"
+path = "src/main.rs"

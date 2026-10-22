@@ -1,0 +1,23 @@
+# Keep the build context lean + keep secrets/artifacts out of the image.
+# (pnpm install + the build regenerate node_modules and dist inside the container.)
+**/node_modules
+**/dist
+**/.turbo
+**/target
+/build
+.git
+.github
+*.log
+**/*.log
+
+# Secrets: never ship these into an image. They are also gitignored, so absent from a clean clone;
+# this covers local `docker build` runs.
+*.key
+*.pem
+keystore/
+
+# Local env: the Dockerfile writes apps/frontend/.env.production itself, so a local
+# .env.local or .env.production must not leak in and override it.
+**/.env
+**/.env.*
+!**/.env.example

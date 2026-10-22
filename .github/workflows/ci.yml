@@ -1,0 +1,183 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  contracts:
+    name: Rust Contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust + RISC-V target
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: riscv64imac-unknown-none-elf
+          components: clippy, rustfmt
+
+      # The contracts link to a RISC-V target, so install the cross-toolchain (as
+      # docker-build.sh does). gcc-riscv64-unknown-elf isn't in Ubuntu apt, so fall back to
+      # the linux-gnu cross-compiler and alias it to the names the build expects.
+      - name: Install RISC-V cross-compiler
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq gcc-riscv64-linux-gnu binutils-riscv64-linux-gnu lld
+          sudo ln -sf "$(command -v riscv64-linux-gnu-gcc)" /usr/local/bin/riscv64-unknown-elf-gcc
+          sudo ln -sf "$(command -v riscv64-linux-gnu-ar)"  /usr/local/bin/riscv64-unknown-elf-ar
+
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Format check
+        run: cargo fmt --all -- --check
+
+      # The contract crates are #![no_std]/#![no_main] RISC-V scripts and cannot be built
+      # for the host, so clippy and test only the host-compatible library and integration crates.
+      - name: Clippy (host crates)
+        run: cargo clippy -p amm-math -p cell-utils -p mol-types -p integration-tests -- -D warnings
+
+      # Build and stage the contract binaries first: the integration tests load them from
+      # build/release/ (ckb-testtool runs the real RISC-V scripts in ckb-vm). The contract
+      # set is read from contracts.list (the single source shared with Makefile + docker-build.sh).
+      # factory-script is built and staged before the rest: pool-script's build.rs derives
+      # FACTORY_CODE_HASH (the canonical-factory identifier) from the staged factory-script
+      # binary, so that binary must exist before pool-script compiles.
+      - name: Build contracts (RISC-V)
+        run: |
+          TARGET=riscv64imac-unknown-none-elf
+          mkdir -p build/release
+          CONTRACTS=$(grep -vE '^[[:space:]]*(#|$)' contracts.list)
+          FACTORY=$(echo "$CONTRACTS" | head -1)
+          REST=$(echo "$CONTRACTS" | tail -n +2)
+          cargo build -p "$FACTORY" --target $TARGET --release --locked
+          cp "target/$TARGET/release/$FACTORY" "build/release/$FACTORY"
+          PKGS=""
+          for c in $REST; do PKGS="$PKGS -p $c"; done
+          cargo build $PKGS --target $TARGET --release --locked
+          for c in $REST; do
+            cp "target/$TARGET/release/$c" "build/release/$c"
+          done
+
+      # `--features otx-tests` also runs the secp256r1/WebAuthn OTX-lock suite (token_in
+      # binding, deadline). It is feature-gated because it needs host p256 signing.
+      # docker-build.sh runs with the same feature.
+      - name: Unit + integration tests
+        run: cargo test -p integration-tests --release --features otx-tests
+
+      - name: Check binary sizes
+        run: |
+          echo "Contract binary sizes:"
+          for c in $(grep -vE '^[[:space:]]*(#|$)' contracts.list); do
+            f="target/riscv64imac-unknown-none-elf/release/$c"
+            if [ -f "$f" ]; then
+              size=$(stat -c%s "$f" 2>/dev/null || stat -f%z "$f")
+              echo "  $c: ${size} bytes"
+              if [ "$size" -gt 102400 ]; then
+                echo "  WARNING: $c exceeds 100KB"
+              fi
+            fi
+          done
+
+  typescript:
+    name: TypeScript Packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      - name: Cache pnpm
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Build first so each workspace package's dist/*.d.ts exists: typecheck resolves
+      # cross-package imports (e.g. @cellswap/types) through those declarations.
+      - name: Build all packages
+        run: pnpm -r build
+
+      - name: Typecheck all packages
+        run: pnpm -r typecheck
+
+      - name: Run tests
+        run: pnpm -r test --if-present
+
+      # The logic/crypto suites live in tests/logic, which is not a pnpm workspace member, so
+      # `pnpm -r test` skips them. Run them explicitly: they cover Rust↔TS byte-offset
+      # consistency, the OTX commitment model and the aggregator's OTX verification, which back
+      # the on-chain checks. Each suite exits 1 on failure.
+      - name: Logic tests (tests/logic)
+        run: |
+          for t in tests/logic/test_*.mjs; do
+            echo "▶ $t"
+            node "$t"
+          done
+
+  security:
+    name: Security Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cargo audit
+        run: |
+          cargo install cargo-audit --quiet
+          cargo audit
+
+      # Scan the working tree directly (filesystem mode) rather than a BASE..HEAD git diff:
+      # the diff form errors on the initial commit (BASE == HEAD) and skips scanning entirely.
+      - name: Check for secrets in code
+        run: |
+          docker run --rm -v "${{ github.workspace }}:/repo" \
+            trufflesecurity/trufflehog:latest filesystem /repo \
+            --only-verified --fail --no-update
+
+      - name: Check .env not committed
+        run: |
+          if git ls-files | grep -q "^\.env$"; then
+            echo "ERROR: .env file committed to repo"
+            exit 1
+          fi
+
+  molecule-schemas:
+    name: Molecule Schema Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install moleculec
+        run: cargo install moleculec --quiet
+
+      - name: Validate schemas compile
+        run: |
+          for mol in schemas/*.mol; do
+            echo "Validating $mol..."
+            moleculec --language rust --schema-file "$mol" > /dev/null
+            echo "  ok $mol"
+          done

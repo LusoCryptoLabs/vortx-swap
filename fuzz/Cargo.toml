@@ -1,0 +1,19 @@
+[package]
+license = "MIT"
+name = "cellswap-fuzz"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+amm-math = { path = "../shared/amm-math", features = ["std"] }
+
+[[bin]]
+name = "amm_math"
+path = "fuzz_targets/amm_math.rs"
+test = false
+doc = false

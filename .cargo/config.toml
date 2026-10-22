@@ -1,0 +1,16 @@
+# RISC-V flags required for CKB-VM compatibility.
+# CKB-VM does not support RISC-V A (atomic) extension.
+# dummy-atomic feature in ckb-std handles this for ckb-std itself.
+# -a flag here disables atomics in all other compiled code.
+[target.riscv64imac-unknown-none-elf]
+rustflags = [
+  "-C", "target-feature=+zba,+zbb,+zbc,+zbs,-a",
+  "-C", "link-arg=-s",
+]
+
+[profile.release]
+overflow-checks = true   # catch overflow in release mode
+opt-level       = "z"    # minimize binary size
+lto             = true
+codegen-units   = 1
+panic           = "abort"

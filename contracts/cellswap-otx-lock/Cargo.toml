@@ -1,0 +1,26 @@
+[package]
+license = "MIT"
+name    = "cellswap-otx-lock"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ckb-std    = { workspace = true, features = ["ckb-types"] }
+cell-utils = { workspace = true }
+
+# secp256r1 (P-256): pure Rust, no_std+alloc, compiles to CKB RISC-V
+# Confirmed on CKB-VM: github.com/cryptape/ckb-crypto-benchmarks
+p256 = { version = "0.13", default-features = false, features = ["ecdsa"] }
+
+# SHA-256 for WebAuthn message construction
+sha2 = { version = "0.10", default-features = false }
+
+# Blake2b for OTX signing hash (same algorithm as CKB internals)
+blake2b-ref = { version = "0.3", default-features = false }
+
+# Base64url for challenge verification
+base64ct = { version = "1", default-features = false, features = ["alloc"] }
+
+[[bin]]
+name = "cellswap-otx-lock"
+path = "src/main.rs"

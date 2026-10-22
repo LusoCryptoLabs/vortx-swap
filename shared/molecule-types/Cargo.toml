@@ -1,0 +1,8 @@
+[package]
+license = "MIT"
+name = "mol-types"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+molecule = { workspace = true }

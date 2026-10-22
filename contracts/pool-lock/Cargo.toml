@@ -1,0 +1,18 @@
+[package]
+license = "MIT"
+name = "pool-lock"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "pool-lock"
+path = "src/main.rs"
+
+[dependencies]
+ckb-std = { workspace = true }
+
+[profile.release]
+overflow-checks = true
+panic = "abort"
+lto = true
+codegen-units = 1

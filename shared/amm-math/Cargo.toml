@@ -1,0 +1,13 @@
+[package]
+license = "MIT"
+name    = "amm-math"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ethnum = { workspace = true }
+
+[features]
+default = []
+std     = []
+# no_std when used in contracts; enable "std" in tests and fuzz targets

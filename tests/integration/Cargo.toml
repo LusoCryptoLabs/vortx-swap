@@ -1,0 +1,27 @@
+[package]
+license = "MIT"
+name = "integration-tests"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[[test]]
+name = "contract_tests"
+path = "src/contract_tests.rs"
+
+[features]
+# Enable to run the secp256r1 OTX lock test (pulls in p256 with signing).
+otx-tests = []
+
+[dev-dependencies]
+amm-math     = { workspace = true, features = ["std"] }
+ckb-testtool = { workspace = true }
+lazy_static  = "1.4"
+# For the OTX signature test (host target, std is fine):
+p256        = { version = "0.13", features = ["ecdsa"] }
+sha2        = "0.10"
+base64ct    = { version = "1", features = ["alloc"] }
+rand_core   = { version = "0.6", features = ["getrandom"] }
+blake2b-ref = "0.3"

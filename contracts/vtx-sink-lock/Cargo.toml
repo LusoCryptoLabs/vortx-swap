@@ -1,0 +1,13 @@
+[package]
+license = "MIT"
+name = "vtx-sink-lock"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ckb-std = { workspace = true, features = ["ckb-types"] }
+blake2b-ref = { workspace = true }
+
+[[bin]]
+name = "vtx-sink-lock"
+path = "src/main.rs"

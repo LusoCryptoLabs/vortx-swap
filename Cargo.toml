@@ -1,0 +1,50 @@
+[workspace]
+members = [
+    "shared/amm-math",
+    "shared/molecule-types",
+    "shared/cell-utils",
+    "contracts/pool-script",
+    "contracts/intent-lock",
+    "contracts/cellswap-otx-lock",   # secp256r1 + WebAuthn OTX (primary lock for JoyID)
+    "contracts/factory-script",
+    "contracts/lp-token",
+    "contracts/pool-lock",
+    "contracts/timelock-lock",
+    "contracts/token-registry",
+    "contracts/stake-pool",
+    "contracts/stake-guard",
+    "contracts/stake-timelock-guard",
+    "contracts/vtx-sink-lock",
+    "contracts/emission-lock",
+    "contracts/mining-pool",
+    "contracts/always-success",
+    "tests/integration",
+]
+resolver = "2"
+
+[workspace.dependencies]
+ckb-std      = { version = "0.16", features = ["ckb-types", "dummy-atomic"] }
+ethnum        = { version = "1", default-features = false }
+blake2b-ref   = { version = "0.3", default-features = false }
+# bytes_vec: use molecule's Vec-backed bytes instead of the external `bytes` crate,
+# which uses atomic refcounting (AMO instructions) that CKB-VM (no A-extension) rejects.
+molecule      = { version = "0.8", default-features = false, features = ["bytes_vec"] }
+
+# secp256r1, compiles on CKB-VM
+p256     = { version = "0.13", default-features = false, features = ["ecdsa"] }
+sha2     = { version = "0.10", default-features = false }
+base64ct = { version = "1",    default-features = false, features = ["alloc"] }
+ckb-testtool = "0.11"
+amm-math     = { path = "shared/amm-math" }
+mol-types    = { path = "shared/molecule-types" }
+cell-utils   = { path = "shared/cell-utils" }
+
+[profile.release]
+overflow-checks = true
+opt-level       = "z"
+lto             = true
+codegen-units   = 1
+panic           = "abort"
+
+[profile.dev]
+overflow-checks = true

@@ -1,0 +1,12 @@
+[package]
+license = "MIT"
+name = "cell-utils"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ckb-std = { workspace = true }
+# Pulled in (even if unused directly) so molecule's `bytes_vec` feature is enabled
+# graph-wide via unification, since every contract depends on cell-utils. This keeps the
+# atomic-bearing external `bytes` crate out of the CKB-VM binaries.
+molecule = { workspace = true }

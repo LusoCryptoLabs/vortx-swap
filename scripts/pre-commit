@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Install: cp scripts/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+
+set -e
+
+echo "Running pre-commit checks..."
+
+# 1. Rust contract tests
+echo "  → cargo test"
+cargo test --quiet
+
+# 2. TypeScript typecheck
+echo "  → typecheck"
+pnpm -r typecheck --silent
+
+# 3. No .env committed
+if git diff --cached --name-only | grep -q "^\.env$"; then
+  echo "ERROR: .env file staged for commit. Never commit secrets."
+  exit 1
+fi
+
+echo "Pre-commit checks passed."

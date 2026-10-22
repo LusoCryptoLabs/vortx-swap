@@ -1,0 +1,22 @@
+# Caddy reverse proxy for the CellSwap aggregator. It terminates TLS (automatic Let's Encrypt) and
+# forwards to the aggregator on the internal docker network. Used by the `tls` compose profile:
+#
+#   AGG_DOMAIN=agg.yourdomain.tld SOLVER_PRIVATE_KEY=0x... CORS_ORIGIN=https://app.yourdomain.tld \
+#     docker compose --profile tls up -d
+#
+# Caddy obtains + renews the certificate automatically; the aggregator itself stays plain HTTP on
+# the internal network (not published to the host). It sets X-Forwarded-For, so run the aggregator
+# with TRUST_PROXY=1 (the compose file already defaults it on) for correct per-client rate limiting.
+
+{$AGG_DOMAIN} {
+	encode gzip
+	reverse_proxy aggregator:3002
+
+	# Extra security headers (CORS itself is enforced in the app via CORS_ORIGIN).
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		-Server
+	}
+}

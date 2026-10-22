@@ -1,0 +1,25 @@
+# Canonical list of CellSwap CKB contract packages to build and stage, one per line.
+# Consumed by Makefile, .github/workflows/ci.yml, and docker-build.sh so the build, the
+# CI test gate, and the local docker gate always compile the exact same set.
+#
+# Ordering matters: factory-script is first on purpose. pool-script/build.rs derives
+# FACTORY_CODE_HASH from the staged factory-script binary, so factory-script must be built
+# and staged to build/release/ before the rest compile. Consumers build the first entry,
+# stage it, then build the remaining entries.
+#
+# Blank lines and lines starting with '#' are ignored.
+factory-script
+pool-script
+cellswap-otx-lock
+lp-token
+pool-lock
+intent-lock
+timelock-lock
+token-registry
+stake-pool
+stake-guard
+stake-timelock-guard
+vtx-sink-lock
+emission-lock
+mining-pool
+always-success

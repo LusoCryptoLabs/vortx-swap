@@ -1,0 +1,79 @@
+# ── Rust / contracts ──────────────────────────────────────────────
+/target
+**/target
+build/
+*.rlib
+*.rmeta
+# Cargo.lock is committed: contract bytecode is deployed by data hash, so the
+# build must be reproducible against a pinned dependency set (CI + both Dockerfiles pass --locked).
+
+# Compiled contract artifacts
+build/release/
+build/debug/
+*.debug
+
+# ── Node / TypeScript ─────────────────────────────────────────────
+# pnpm is the authoritative package manager (pnpm-lock.yaml); do not track an npm lockfile
+/package-lock.json
+node_modules/
+dist/
+*.tsbuildinfo
+.turbo/
+.pnpm-store/
+pnpm-debug.log*
+npm-debug.log*
+yarn-error.log*
+
+# ── Frontend (Vite) ───────────────────────────────────────────────
+apps/frontend/dist/
+apps/frontend/.vite/
+*.local
+
+# ── Aggregator runtime state ──────────────────────────────────────
+data/
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# ── Deployment artifacts & secrets ────────────────────────────────
+# Per-network manifests written by deploy.sh are ignored, except the public testnet cellDep
+# manifest (code/tx hashes only, no secrets), which is the reference for the deployed scripts.
+deployed/*
+!deployed/testnet/
+deployed/testnet/*
+!deployed/testnet/scripts.json
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+keystore/
+# state written by scripts/genesis-vtx-phase1.mjs and read by phase 2
+/.genesis-vtx-state.json
+# Never commit private keys (SOLVER_PRIVATE_KEY, DEPLOYER_PRIVATE_KEY, etc.)
+
+# ── offckb / local devnet ─────────────────────────────────────────
+.offckb/
+offckb.config.json
+ckb-devnet/
+
+# ── Editor / OS ───────────────────────────────────────────────────
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# ── Test / coverage ───────────────────────────────────────────────
+coverage/
+.nyc_output/
+*.profraw
+
+# ── Misc ──────────────────────────────────────────────────────────
+*.log
+tmp/
+.cache/

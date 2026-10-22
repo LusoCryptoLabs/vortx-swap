@@ -1,0 +1,15 @@
+[package]
+license = "MIT"
+name = "mining-pool"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ckb-std     = { workspace = true }
+ethnum      = { workspace = true }
+cell-utils  = { workspace = true }
+blake2b-ref = { workspace = true }
+
+[[bin]]
+name = "mining-pool"
+path = "src/main.rs"

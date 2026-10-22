@@ -1,0 +1,47 @@
+{
+  "name": "@cellswap/sdk",
+  "version": "0.1.0",
+  "description": "CellSwap DEX SDK: swap CKB and xUDT tokens on Nervos CKB",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@cellswap/types": "workspace:*",
+    "@cellswap/codec": "workspace:*",
+    "@cellswap/chain-client": "workspace:*",
+    "@cellswap/router": "workspace:*",
+    "@cellswap/config": "workspace:*",
+    "@cellswap/token-registry": "workspace:*",
+    "@ckb-ccc/core": "^1.12.5",
+    "@noble/hashes": "^1.4.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0"
+  },
+  "peerDependencies": {
+    "@ckb-ccc/connector-react": "^1.0.0"
+  },
+  "keywords": [
+    "ckb",
+    "nervos",
+    "dex",
+    "amm",
+    "defi",
+    "xUDT",
+    "rgb++"
+  ],
+  "license": "MIT"
+}

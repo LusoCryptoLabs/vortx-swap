@@ -1,0 +1,67 @@
+services:
+  # CKB node: for dev, run it with offckb, not from this file.
+  # Run: offckb node
+  # This compose is for the off-chain stack only
+
+  # CKB Indexer, required by the aggregator and the SDK
+  indexer:
+    image: nervos/ckb-indexer:latest
+    ports:
+      - "8116:8116"
+    environment:
+      CKB_INDEXER_RPC_LISTEN_ADDRESS: "0.0.0.0:8116"
+      CKB_INDEXER_STORE: "/data"
+      CKB_INDEXER_CKB_URI: "http://host.docker.internal:28114"  # offckb devnet
+    volumes:
+      - indexer-data:/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # Aggregator
+  aggregator:
+    build:
+      context: .
+      dockerfile: packages/aggregator/Dockerfile
+    environment:
+      NETWORK: devnet
+      CKB_RPC_URL: http://host.docker.internal:28114
+      INDEXER_URL: http://indexer:8116
+      SOLVER_PRIVATE_KEY: ${SOLVER_PRIVATE_KEY}      # from .env; never inline a key here
+      # ── Hardening. Set these in .env for a public deploy. ──
+      CORS_ORIGIN: ${CORS_ORIGIN:-}                  # e.g. https://app.yourdomain.tld
+      AGGREGATOR_API_KEY: ${AGGREGATOR_API_KEY:-}     # gates the detailed GET /orders listing
+      TRUST_PROXY: ${TRUST_PROXY:-1}                  # caddy terminates TLS in front → trust XFF
+      MAX_OTX_QUEUE: ${MAX_OTX_QUEUE:-5000}
+    # Not published to the host: only the TLS proxy (caddy) reaches it on the internal network.
+    expose:
+      - "3002"
+    depends_on:
+      - indexer
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  # TLS terminator / reverse proxy. Caddy auto-provisions a Let's Encrypt cert for AGG_DOMAIN
+  # and forwards to the aggregator over the internal network. This is the recommended way to
+  # add TLS (vs. native TLS_CERT_PATH/TLS_KEY_PATH in the aggregator). Disabled unless you
+  # `docker compose --profile tls up` and set AGG_DOMAIN.
+  caddy:
+    image: caddy:2
+    profiles: ["tls"]
+    environment:
+      AGG_DOMAIN: ${AGG_DOMAIN:?set AGG_DOMAIN to your aggregator hostname}
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - aggregator
+    restart: unless-stopped
+
+volumes:
+  indexer-data:
+  caddy-data:
+  caddy-config:
